@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import axios from 'axios'
 
 const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (
@@ -83,6 +84,8 @@ export default function WhatsAppBotForm() {
 
   const handleVerify = async () => {
     setIsLoading(true)
+    // Since there's no verify endpoint in the provided main.py,
+    // we'll just simulate verification here
     await new Promise(resolve => setTimeout(resolve, 1000))
     if (customerPhone.length >= 10) {
       setIsVerified(true)
@@ -104,9 +107,21 @@ export default function WhatsAppBotForm() {
       return
     }
     setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    console.log('Sending message:', { customerPhone, recipientPhones, message })
-    showToast("Your messages have been sent.")
+    try {
+      const response = await axios.post('http://localhost:8000/send-bulk-whatsapp/', {
+        sender: customerPhone,
+        message: message,
+        recipients: recipientPhones.split('\n').map(phone => phone.trim())
+      })
+      if (response.data.status === 'success') {
+        showToast(response.data.detail)
+      } else {
+        showToast("Failed to send messages. Please try again.")
+      }
+    } catch (error) {
+      console.error('Error sending messages:', error)
+      showToast("An error occurred while sending messages.")
+    }
     setIsLoading(false)
   }
 
