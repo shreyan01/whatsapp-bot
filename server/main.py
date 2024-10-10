@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from twilio.rest import Client
 import os
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
@@ -13,6 +14,14 @@ auth_token = os.getenv('TWILIO_AUTH_TOKEN')
 client = Client(account_sid, auth_token)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000/send-text"],  # Add your Next.js frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class MessageRequest(BaseModel):
     sender: str  # Must be a Twilio-approved WhatsApp number
